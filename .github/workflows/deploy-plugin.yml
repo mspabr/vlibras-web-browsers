@@ -30,13 +30,18 @@ jobs:
 
       - name: Install & Build
         run: |
-          # 1. Instala dependências do Player na pasta lateral
+          # 1. Instala as dependências do Player (necessário para que o código fonte seja válido)
           cd vlibras-player-webjs
           npm install --legacy-peer-deps
           
-          # 2. Volta para a raiz (Plugin) e instala/builda
+          # 2. Volta para a raiz (Plugin)
           cd ..
+          
+          # 3. Instala as dependências do Plugin. 
+          # O npm vai ler o "file:../vlibras-player-webjs" e criar o link automaticamente
           npm install --legacy-peer-deps
+          
+          # 4. Executa o build agora que o caminho 'vlibras' existe
           npm run build
 
       - name: Prepare Assets for GH Pages
