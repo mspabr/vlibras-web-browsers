@@ -14,15 +14,14 @@ jobs:
     steps:
       - name: Checkout Plugin
         uses: actions/checkout@v4
-        # Fica na raiz (.) para o deploy achar o .git de primeira
+        # Fica na raiz para o deploy funcionar
 
-      - name: Checkout Player (Dependência)
+      - name: Checkout Player
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/vlibras-player-webjs
           ref: dev
-          # Aqui está o truque: baixar o player "fora" da pasta do plugin
-          path: ../vlibras-player-webjs
+          path: player-folder # Baixa dentro de uma subpasta segura
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,14 +30,19 @@ jobs:
 
       - name: Install & Build
         run: |
-          # 1. Buildar o Player onde ele foi baixado (um nível acima)
-          cd ../vlibras-player-webjs
+          # 1. Buildar o Player
+          cd player-folder
           npm install --legacy-peer-deps
           npm run build
           
-          # 2. Voltar para a raiz (Plugin) e buildar
-          cd ../vlibras-web-browsers # O GitHub coloca o repo atual nesta pasta
+          # 2. Voltar para o Plugin e forçar a instalação do player local
+          cd ..
           npm install --legacy-peer-deps
+          
+          # TRUQUE: Sobrescreve a dependência "file:../" pelo caminho real da Action
+          npm install ./player-folder --legacy-peer-deps
+          
+          # 3. Build do Plugin
           npm run build
 
       - name: Prepare Assets
