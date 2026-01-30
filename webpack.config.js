@@ -15,6 +15,7 @@ const webpackConfig = {
     library: 'VLibras',
     libraryTarget: 'window',
     publicPath: constants.ROOT_PATH,
+    uniqueName: 'mspa-vlibras',
   },
   resolve: {
     modules: [path.join(__dirname, 'plugin'), 'node_modules'],
@@ -54,7 +55,7 @@ const webpackConfig = {
   plugins: [
     new CompressionPlugin(),
     new webpack.ProvidePlugin({ '~constants': '~constants' }),
-    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 2 }),
+    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
   ],
   optimization: {
     minimize: true,

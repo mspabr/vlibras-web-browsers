@@ -6,54 +6,66 @@ const fs = require('fs');
 const path = require('path');
 const port = process.argv[2] || 8080;
 
-http.createServer(function(req, res) {
-  // console.log(`${req.method} ${req.url}`);
+http
+  .createServer(function (req, res) {
+    // console.log(`${req.method} ${req.url}`);
 
-  // parse URL
-  const parsedUrl = url.parse(req.url);
-  // extract URL path
-  let pathname = path.join(__dirname, 'app', parsedUrl.pathname);
-  // based on the URL path, extract the file extention. e.g. .js, .doc, ...
-  const ext = path.parse(pathname).ext || '.html';
-  // maps file extention to MIME typere
-  const map = {
-    '.ico': 'image/x-icon',
-    '.html': 'text/html',
-    '.js': 'text/javascript',
-    '.json': 'application/json',
-    '.css': 'text/css',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.wav': 'audio/wav',
-    '.mp3': 'audio/mpeg',
-    '.svg': 'image/svg+xml',
-    '.pdf': 'application/pdf',
-    '.doc': 'application/msword',
-  };
-
-  fs.exists(pathname, function(exist) {
-    if (!exist) {
-      // if the file is not found, return 404
-      res.statusCode = 404;
-      res.end(`File ${pathname} not found!`);
-      return;
+    // parse URL
+    const parsedUrl = url.parse(req.url);
+    // extract URL path
+    let baseDir = __dirname;
+    if (
+      parsedUrl.pathname === '/test.html' ||
+      parsedUrl.pathname === '/vlibras-universal.js'
+    ) {
+      baseDir = path.join(__dirname, '..', '..');
+    } else {
+      baseDir = path.join(__dirname, 'app');
     }
+    let pathname = path.join(baseDir, parsedUrl.pathname);
+    // based on the URL path, extract the file extention. e.g. .js, .doc, ...
+    const ext = path.parse(pathname).ext || '.html';
+    // maps file extention to MIME typere
+    const map = {
+      '.ico': 'image/x-icon',
+      '.html': 'text/html',
+      '.js': 'text/javascript',
+      '.json': 'application/json',
+      '.css': 'text/css',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.wav': 'audio/wav',
+      '.mp3': 'audio/mpeg',
+      '.svg': 'image/svg+xml',
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+    };
 
-    // if is a directory search for index file matching the extention
-    if (fs.statSync(pathname).isDirectory()) pathname = path.join(pathname, '/index' + ext);
-
-    // read file from file system
-    fs.readFile(pathname, function(err, data) {
-      if (err) {
-        res.statusCode = 500;
-        res.end(`Error getting the file: ${err}.`);
-      } else {
-        // if the file is found, set Content-type and send data
-        res.setHeader('Content-type', map[ext] || 'text/plain' );
-        res.end(data);
+    fs.exists(pathname, function (exist) {
+      if (!exist) {
+        // if the file is not found, return 404
+        res.statusCode = 404;
+        res.end(`File ${pathname} not found!`);
+        return;
       }
+
+      // if is a directory search for index file matching the extention
+      if (fs.statSync(pathname).isDirectory())
+        pathname = path.join(pathname, '/index' + ext);
+
+      // read file from file system
+      fs.readFile(pathname, function (err, data) {
+        if (err) {
+          res.statusCode = 500;
+          res.end(`Error getting the file: ${err}.`);
+        } else {
+          // if the file is found, set Content-type and send data
+          res.setHeader('Content-type', map[ext] || 'text/plain');
+          res.end(data);
+        }
+      });
     });
-  });
-}).listen(parseInt(port));
+  })
+  .listen(parseInt(port));
 
 // console.log(`Server listening on port ${port}`);
