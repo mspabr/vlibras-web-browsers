@@ -31,23 +31,25 @@ jobs:
 
       - name: Install & Build
         run: |
-          cd vlibras-web-browsers
+          # 1. Resolve as dependências que o Player precisa (necessário para o build do plugin)
+          cd vlibras-player-webjs
           npm install --legacy-peer-deps
+          
+          # 2. Volta e instala as do Plugin
+          cd ../vlibras-web-browsers
+          npm install --legacy-peer-deps
+          
+          # 3. Agora o build não vai reclamar de 'superagent' ou 'url-join' ausentes
           npm run build
 
       - name: Prepare Assets for GH Pages
         run: |
-          # 1. Cria o arquivo que desativa o Jekyll (essencial para Unity/Binários)
+          # Garante o .nojekyll na pasta de saída do plugin
           touch vlibras-web-browsers/widget/app/.nojekyll
-          
-          # 2. Garante que a pasta target (se não estiver lá) seja copiada para o build final
-          # Se o gulp já coloca ela lá, ignore este passo.
-          # cp -r vlibras-player-webjs/target vlibras-web-browsers/widget/app/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: vlibras-web-browsers/widget/app
           branch: gh-pages
-          # Garante que arquivos ocultos (como o .nojekyll) não sejam excluídos
           clean: true
