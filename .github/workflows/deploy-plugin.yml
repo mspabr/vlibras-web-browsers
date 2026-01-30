@@ -14,14 +14,18 @@ jobs:
     steps:
       - name: Checkout Plugin
         uses: actions/checkout@v4
-        # Removido o 'path' para ele ficar na raiz absoluta (.)
+        with:
+          # Colocamos o plugin em uma pasta chamada 'main'
+          path: main
 
-      - name: Checkout Player (Dependência Local)
+      - name: Checkout Player (Dependência)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/vlibras-player-webjs
           ref: dev
-          path: vlibras-player-webjs # Mantemos o nome da pasta lateral para o build achar
+          # Colocamos o player na pasta vizinha
+          # Assim, dentro de 'main', o '../vlibras-player-webjs' vai funcionar!
+          path: vlibras-player-webjs
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,29 +34,27 @@ jobs:
 
       - name: Install & Build
         run: |
-          # 1. Instala as dependências do Player (necessário para que o código fonte seja válido)
+          # 1. Buildar o Player primeiro (necessário para gerar os arquivos que o plugin importa)
           cd vlibras-player-webjs
           npm install --legacy-peer-deps
+          npm run build
           
-          # 2. Volta para a raiz (Plugin)
-          cd ..
-          
-          # 3. Instala as dependências do Plugin. 
-          # O npm vai ler o "file:../vlibras-player-webjs" e criar o link automaticamente
+          # 2. Voltar e entrar no Plugin
+          cd ../main
           npm install --legacy-peer-deps
-          
-          # 4. Executa o build agora que o caminho 'vlibras' existe
           npm run build
 
-      - name: Prepare Assets for GH Pages
+      - name: Prepare Assets
         run: |
-          # O caminho agora é direto, pois o plugin está na raiz
-          touch widget/app/.nojekyll
+          # Cria o .nojekyll dentro da pasta de saída do Plugin
+          touch main/widget/app/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # Sem o 'workspace' problemático
-          folder: widget/app
+          # O repositório git principal está na pasta 'main'
+          workspace: main
+          # A pasta que vai para o ar está dentro de 'main'
+          folder: main/widget/app
           branch: gh-pages
           clean: true
