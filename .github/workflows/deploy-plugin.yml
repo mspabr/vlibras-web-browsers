@@ -14,18 +14,15 @@ jobs:
     steps:
       - name: Checkout Plugin
         uses: actions/checkout@v4
-        with:
-          # Colocamos o plugin em uma pasta chamada 'main'
-          path: main
+        # Fica na raiz (.) para o deploy achar o .git de primeira
 
       - name: Checkout Player (Dependência)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/vlibras-player-webjs
           ref: dev
-          # Colocamos o player na pasta vizinha
-          # Assim, dentro de 'main', o '../vlibras-player-webjs' vai funcionar!
-          path: vlibras-player-webjs
+          # Aqui está o truque: baixar o player "fora" da pasta do plugin
+          path: ../vlibras-player-webjs
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,27 +31,22 @@ jobs:
 
       - name: Install & Build
         run: |
-          # 1. Buildar o Player primeiro (necessário para gerar os arquivos que o plugin importa)
-          cd vlibras-player-webjs
+          # 1. Buildar o Player onde ele foi baixado (um nível acima)
+          cd ../vlibras-player-webjs
           npm install --legacy-peer-deps
           npm run build
           
-          # 2. Voltar e entrar no Plugin
-          cd ../main
+          # 2. Voltar para a raiz (Plugin) e buildar
+          cd ../vlibras-web-browsers # O GitHub coloca o repo atual nesta pasta
           npm install --legacy-peer-deps
           npm run build
 
       - name: Prepare Assets
-        run: |
-          # Cria o .nojekyll dentro da pasta de saída do Plugin
-          touch main/widget/app/.nojekyll
+        run: touch widget/app/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # O repositório git principal está na pasta 'main'
-          workspace: main
-          # A pasta que vai para o ar está dentro de 'main'
-          folder: main/widget/app
+          folder: widget/app
           branch: gh-pages
           clean: true
