@@ -1,0 +1,44 @@
+name: Deploy Plugin to GitHub Pages
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Plugin
+        uses: actions/checkout@v4
+        with:
+          path: vlibras-web-browsers
+
+      - name: Checkout Player (Dependência Local)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/vlibras-player-webjs
+          ref: dev # Ou a branch que você quer usar como base
+          path: vlibras-player-webjs
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install & Build
+        run: |
+          cd vlibras-web-browsers
+          # Instala as dependências (isso vai ler o player na pasta ao lado)
+          npm install --legacy-peer-deps
+          # Executa o comando "MODE='production' gulp build"
+          npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: vlibras-web-browsers/widget/app # Pasta de saída do gulp
+          branch: gh-pages
