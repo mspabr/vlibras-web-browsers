@@ -14,15 +14,14 @@ jobs:
     steps:
       - name: Checkout Plugin
         uses: actions/checkout@v4
-        with:
-          path: vlibras-web-browsers
+        # Removido o 'path' para ele ficar na raiz absoluta (.)
 
       - name: Checkout Player (Dependência Local)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/vlibras-player-webjs
           ref: dev
-          path: vlibras-player-webjs
+          path: vlibras-player-webjs # Mantemos o nome da pasta lateral para o build achar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,26 +30,24 @@ jobs:
 
       - name: Install & Build
         run: |
-          # 1. Resolve as dependências que o Player precisa (necessário para o build do plugin)
+          # 1. Instala dependências do Player na pasta lateral
           cd vlibras-player-webjs
           npm install --legacy-peer-deps
           
-          # 2. Volta e instala as do Plugin
-          cd ../vlibras-web-browsers
+          # 2. Volta para a raiz (Plugin) e instala/builda
+          cd ..
           npm install --legacy-peer-deps
-          
-          # 3. Agora o build não vai reclamar de 'superagent' ou 'url-join' ausentes
           npm run build
 
       - name: Prepare Assets for GH Pages
         run: |
-          # Garante o .nojekyll na pasta de saída do plugin
-          touch vlibras-web-browsers/widget/app/.nojekyll
+          # O caminho agora é direto, pois o plugin está na raiz
+          touch widget/app/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          workspace: vlibras-web-browsers 
-          folder: vlibras-web-browsers/widget/app
+          # Sem o 'workspace' problemático
+          folder: widget/app
           branch: gh-pages
           clean: true
