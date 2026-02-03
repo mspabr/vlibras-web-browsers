@@ -47,7 +47,7 @@ module.exports = function Widget(...args) {
     tempF = window.onload;
   }
 
-  window.onload = () => {
+  this.init = () => {
     resolveMultipleWidgetsIssue();
 
     if (tempF) tempF();
@@ -69,24 +69,24 @@ module.exports = function Widget(...args) {
       this.element.style.left = position.includes('L')
         ? '0'
         : ['T', 'B'].includes(position)
-        ? '50%'
-        : 'initial';
+          ? '50%'
+          : 'initial';
 
       this.element.style.right = position.includes('R') ? '0' : 'initial';
 
       this.element.style.top = position.includes('T')
         ? '0'
         : ['L', 'R'].includes(position)
-        ? '50%'
-        : 'initial';
+          ? '50%'
+          : 'initial';
 
       this.element.style.bottom = position.includes('B') ? '0' : 'initial';
 
       this.element.style.transform = ['L', 'R'].includes(position)
         ? `translateY(calc(-50% - 10px))`
         : ['T', 'B'].includes(position)
-        ? 'translateX(calc(-50% - 10px))'
-        : 'initial';
+          ? 'translateX(calc(-50% - 10px))'
+          : 'initial';
 
       const access = $('[vw-access-button]');
 
@@ -129,6 +129,16 @@ module.exports = function Widget(...args) {
       setTimeout(() => (accessButton.element.style.width = width), 3000);
     }, 2000);
   };
+
+  // Initialize immediately if DOM is ready, otherwise wait for load
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
+    this.init();
+  } else {
+    window.addEventListener('load', this.init);
+  }
 
   function resolveMultipleWidgetsIssue() {
     $$('[vw]').forEach((vw) => {
