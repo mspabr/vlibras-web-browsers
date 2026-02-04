@@ -5,6 +5,8 @@ const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin'); // <<< AQUI
+
 const constants = require(`./plugin/constants/${mode}-paths`);
 
 const webpackConfig = {
@@ -35,15 +37,15 @@ const webpackConfig = {
   module: {
     rules: [
       {
-        test: /\.s?css/,
+        test: /\.s?css$/,
         use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-          { loader: 'sass-loader' },
+          MiniCssExtractPlugin.loader, // <<< ALTERADO
+          'css-loader',
+          'sass-loader',
         ],
       },
       {
-        test: /\.html/,
+        test: /\.html$/,
         loader: 'raw-loader',
       },
       {
@@ -53,6 +55,10 @@ const webpackConfig = {
     ],
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'vlibras.css', // <<< ARQUIVO CSS GERADO
+    }),
+
     new CompressionPlugin(),
     new webpack.ProvidePlugin({ '~constants': '~constants' }),
     new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
